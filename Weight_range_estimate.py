@@ -6,32 +6,32 @@ from sklearn.metrics import classification_report, accuracy_score
 from sklearn.model_selection import train_test_split
 import numpy as np
 
-# CSV dosyasını oku
+# Read the CSV file
 with open("Data_set.csv", "r") as file:
     lines = file.readlines()
 
-# Her satırı virgülle ayırarak bir listeye dönüştür
+# Convert each line into a list by splitting at commas
 data = [line.strip().split(",") for line in lines]
 
-# Veri çerçevesini oluştur
+# Create the DataFrame
 df = pd.DataFrame(data, columns=["Age", "Gender", "Height", "Weight", "CALC", "FAVC", "FCVC", "NCP", "SCC", "SMOKE", "CH2O", "family_history_with_overweight", "FAF", "TUE", "CAEC", "MTRANS", "NObeyesdad"])
 
-# Veri setini keşfet ve ön işlemleri yap
-# Örneğin, eksik verileri doldurabilir, kategorik değişkenleri kodlayabilir, vb.
+# Explore the dataset and perform preprocessing
+# For example, you can fill missing values, encode categorical variables, etc.
 
-# Hedef değişkeni (NObeyesdad) ve özellikleri ayır
+# Separate the target variable (NObeyesdad) and features
 X = df.drop("NObeyesdad", axis=1)
 y = df["NObeyesdad"]
 
-# Kategorik değişkenleri kodlayın
+# Encode categorical variables
 label_encoder = LabelEncoder()
 X_encoded = X.apply(label_encoder.fit_transform)
 
-# Modeli seçin ve eğitin
+# Choose and train the model
 model = RandomForestClassifier(n_estimators=4, random_state=42)
 model.fit(X_encoded, y)
 
-# Modelin performansını değerlendirin
+# Evaluate the model's performance
 y_pred = model.predict(X_encoded)
 accuracy = accuracy_score(y, y_pred)
 report = classification_report(y, y_pred)
@@ -41,48 +41,47 @@ print("Accuracy:", accuracy)
 print("Classification Report:")
 print(report)
 
-# Veri setini eğitim ve test kümelerine ayır
+# Split the dataset into training and testing sets
 X_train, X_test, y_train, y_test = train_test_split(X_encoded, y, test_size=0.2, random_state=42)
 
-# Modelin performansını değerlendir
+# Evaluate the model's performance on the testing set
 y_pred = model.predict(X_test)
 accuracy = accuracy_score(y_test, y_pred)
 report = classification_report(y_test, y_pred)
 
-print("Modelin Performansı:")
+print("Model Performance:")
 print("Accuracy:", accuracy)
 print("Classification Report:")
 print(report)
 
-
-# İlk 10 kişinin tahminlerini al
+# Get predictions for the first 10 individuals in the dataset
 first_10_predictions = model.predict(X_encoded.head(10))
 
-print("\nEğitim Setindeki İlk 10 Kişinin Tahminleri:")
+print("\nPredictions for the First 10 Individuals in the Training Set:")
 for i, prediction in enumerate(first_10_predictions):
-    print(f"Kişi {i + 1} Tahmini: {prediction}")
+    print(f"Individual {i + 1} Prediction: {prediction}")
 
-# Rastgele kişi oluştur
+# Create a random person
 new_person = pd.DataFrame({
-    "Age": [23],  # Örnek bir yaş
-    "Gender": ["Male"],  # Örnek bir cinsiyet
-    "Height": [1.80],  # Örnek bir boy
-    "Weight": [75],  # Örnek bir kilo (kilolu olduğunu belirten bir değer)
-    "CALC": ["no"],  # Örnek bir değer
-    "FAVC": ["no"],  # Örnek bir değer
-    "FCVC": [2],  # Örnek bir değer
-    "NCP": [3],  # Örnek bir değer
-    "SCC": ["no"],  # Örnek bir değer
-    "SMOKE": ["no"],  # Örnek bir değer
-    "CH2O": [2],  # Örnek bir değer
-    "family_history_with_overweight": ["yes"],  # Örnek bir değer
-    "FAF": [0],  # Örnek bir değer
-    "TUE": [1],  # Örnek bir değer
-    "CAEC": ["Sometimes"],  # Örnek bir değer
-    "MTRANS": ["Public_Transportation"]  # Örnek bir değer
+    "Age": [23],  # Sample age
+    "Gender": ["Male"],  # Sample gender
+    "Height": [1.80],  # Sample height
+    "Weight": [75],  # Sample weight (indicating they are overweight)
+    "CALC": ["no"],  # Sample value
+    "FAVC": ["no"],  # Sample value
+    "FCVC": [2],  # Sample value
+    "NCP": [3],  # Sample value
+    "SCC": ["no"],  # Sample value
+    "SMOKE": ["no"],  # Sample value
+    "CH2O": [2],  # Sample value
+    "family_history_with_overweight": ["yes"],  # Sample value
+    "FAF": [0],  # Sample value
+    "TUE": [1],  # Sample value
+    "CAEC": ["Sometimes"],  # Sample value
+    "MTRANS": ["Public_Transportation"]  # Sample value
 })
 
-# Eğitim verisindeki kategorik değişkenlerin sınıflarını al
+# Get the classes of categorical variables in the training data
 label_encoder_classes = {}
 for col in X.columns:
     if X[col].dtype == 'object':
@@ -90,12 +89,13 @@ for col in X.columns:
         label_encoder.fit(X[col])
         label_encoder_classes[col] = label_encoder.classes_
 
-# Yeni kişi verilerini kodlarken kullanılacak label_encoder_classes nesnesini kullanarak sınıfları belirleyin
+# Encode the new person's data using the label_encoder_classes
 new_person_encoded = new_person.copy()
 for col, classes in label_encoder_classes.items():
     new_person_encoded[col] = new_person[col].apply(lambda x: np.where(classes == x)[0][0] if x in classes else -1)
 
+# Get the prediction for the new person
+prediction = model.predict(new_person_encoded)
 
-
-# Tahmini sonucu ekrana yazdır
-print("\nTahmini Sonuç:", prediction)
+# Print the predicted result
+print("\nPredicted Result:", prediction)
